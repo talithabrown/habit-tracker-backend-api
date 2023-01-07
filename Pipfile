@@ -16,6 +16,7 @@ gunicorn = "*"
 redis = "*"
 celery = "*"
 psycopg2-binary = "*"
+whitenoise = "*"
 
 [dev-packages]
 

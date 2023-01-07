@@ -15,6 +15,7 @@ djangorestframework-simplejwt = "*"
 gunicorn = "*"
 redis = "*"
 celery = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 

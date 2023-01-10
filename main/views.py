@@ -120,6 +120,7 @@ class UserHabitDatesViewSet(ModelViewSet):
 class UserCompleteDatesViewSet(ModelViewSet):
     serializer_class = HabitDateSerializer
     permission_classes=[IsAuthenticated]
+    #
 
     def get_queryset(self):
         user = self.request.user.id

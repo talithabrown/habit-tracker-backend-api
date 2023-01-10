@@ -48,3 +48,6 @@ class Habit(models.Model):
 class HabitCompleteDate(models.Model):
     complete_date = models.DateField(default=date.today)
     habit = models.ForeignKey(Habit, on_delete=models.CASCADE, related_name='habit_complete_dates')
+
+    class Meta:
+        unique_together = ('complete_date', 'habit',)

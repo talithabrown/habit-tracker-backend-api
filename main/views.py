@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.shortcuts import get_object_or_404
+from django.db.models import Prefetch
 from .models import User, Habit, HabitCompleteDate
 from .serializers import UserSerializer, HabitSerializer, HabitCompleteDateSerializer, PostHabitSerializer, HabitDateSerializer
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
@@ -33,7 +35,7 @@ class UserViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
 class HabitViewSet(ModelViewSet):
     serializer_class = HabitSerializer
     permission_classes = [IsAdminUser]
-    queryset = Habit.objects.prefetch_related('habit_complete_dates').all()
+    queryset = Habit.objects.all()
 
 
 class UserHabitsViewSet(ModelViewSet):
@@ -44,7 +46,7 @@ class UserHabitsViewSet(ModelViewSet):
     
     def get_queryset(self):
         user = self.request.user.id
-        queryset = Habit.objects.prefetch_related('habit_complete_dates').filter(user=user)
+        queryset = Habit.objects.filter(user=user)
 
         date = self.request.query_params.get('date')
         month = self.request.query_params.get('month')
@@ -57,14 +59,13 @@ class UserHabitsViewSet(ModelViewSet):
             elif habit_status == 'incomplete':
                 queryset = queryset.exclude(habit_complete_dates__complete_date=date)
 
-        if month is not None and year is not None:
+        elif month is not None and year is not None:
             month = int(month)
             year = int(year)
             start_date = f'{year}-{month}-01'
             (first_weekday, last_day_of_month) = calendar.monthrange(year, month)
             end_date = f'{year}-{month}-{last_day_of_month}'
-            # pprint(start_date)
-            # pprint(end_date)
+
             queryset = queryset.filter(habit_complete_dates__complete_date__gte=start_date, habit_complete_dates__complete_date__lte=end_date).distinct()
 
         return queryset
@@ -87,7 +88,7 @@ class UserHabitsAdminViewSet(ModelViewSet):
     permission_classes = [IsAdminUser]
     
     def get_queryset(self):
-        return Habit.objects.prefetch_related('habit_complete_dates').filter(user=self.kwargs['user_pk'])
+        return Habit.objects.filter(user=self.kwargs['user_pk'])
 
 
 class HabitCompleteDateViewSet(ModelViewSet):
@@ -101,9 +102,41 @@ class UserHabitDatesViewSet(ModelViewSet):
     permission_classes=[IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user.id
         habit_id = self.kwargs['habit_pk']
-        return HabitCompleteDate.objects.filter(habit=habit_id)
+        queryset =  HabitCompleteDate.objects.filter(habit=habit_id)
+
+        date = self.request.query_params.get('date')
+
+        if date is not None:
+            queryset = queryset.filter(habit=habit_id ,complete_date=date)
+
+        return queryset
 
     def get_serializer_context(self):
         return {'habit_id': self.kwargs['habit_pk']}
+
+
+
+class UserCompleteDatesViewSet(ModelViewSet):
+    serializer_class = HabitDateSerializer
+    permission_classes=[IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user.id
+        queryset =  HabitCompleteDate.objects.filter(habit__user=user)
+
+        month = self.request.query_params.get('month')
+        year = self.request.query_params.get('year')
+
+        if month is not None and year is not None:
+            month = int(month)
+            year = int(year)
+            start_date = f'{year}-{month}-01'
+            (first_weekday, last_day_of_month) = calendar.monthrange(year, month)
+            end_date = f'{year}-{month}-{last_day_of_month}'
+
+            queryset = queryset.filter(complete_date__gte=start_date, complete_date__lte=end_date)
+
+        return queryset
+
+

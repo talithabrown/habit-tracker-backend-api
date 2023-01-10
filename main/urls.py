@@ -8,6 +8,7 @@ router.register('users', views.UserViewSet)
 router.register('habits', views.HabitViewSet, basename='habits')
 router.register('habitcompletedates', views.HabitCompleteDateViewSet)
 router.register('users/me/habits', views.UserHabitsViewSet, basename='user-habits')
+router.register('users/me/completedates', views.UserCompleteDatesViewSet, basename='user-completedates')
 
 users_router = routers.NestedDefaultRouter(router, 'users', lookup='user')
 users_router.register('habits', views.UserHabitsAdminViewSet, basename='user-habits-admin')

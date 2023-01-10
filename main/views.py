@@ -49,9 +49,13 @@ class UserHabitsViewSet(ModelViewSet):
         date = self.request.query_params.get('date')
         month = self.request.query_params.get('month')
         year = self.request.query_params.get('year')
+        habit_status = self.request.query_params.get('status')
 
-        if date is not None:
-            queryset = queryset.filter(habit_complete_dates__complete_date=date).distinct()
+        if date is not None and habit_status is not None:
+            if habit_status == 'complete':
+                queryset = queryset.filter(habit_complete_dates__complete_date=date).distinct()
+            elif habit_status == 'incomplete':
+                queryset = queryset.exclude(habit_complete_dates__complete_date=date)
 
         if month is not None and year is not None:
             month = int(month)

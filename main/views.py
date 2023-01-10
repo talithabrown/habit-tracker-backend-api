@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.db.models import Prefetch
 from .models import User, Habit, HabitCompleteDate
-from .serializers import UserSerializer, HabitSerializer, HabitCompleteDateSerializer, PostHabitSerializer, HabitDateSerializer
+from .serializers import UserSerializer, UserHabitSerializer, AdminHabitSerializer, HabitCompleteDateSerializer, PostHabitSerializer, HabitDateSerializer
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.mixins import RetrieveModelMixin, ListModelMixin
 from rest_framework import status
@@ -33,7 +33,7 @@ class UserViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
 
 
 class HabitViewSet(ModelViewSet):
-    serializer_class = HabitSerializer
+    serializer_class = AdminHabitSerializer
     permission_classes = [IsAdminUser]
     queryset = Habit.objects.all()
 
@@ -73,18 +73,18 @@ class UserHabitsViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return PostHabitSerializer
-        return HabitSerializer
+        return UserHabitSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = PostHabitSerializer(data=request.data, context={'user': self.request.user.id})
         serializer.is_valid(raise_exception=True)
         habit = serializer.save()
-        serializer = HabitSerializer(habit)
+        serializer = UserHabitSerializer(habit)
         return Response(serializer.data)
 
 
 class UserHabitsAdminViewSet(ModelViewSet):
-    serializer_class = HabitSerializer
+    serializer_class = AdminHabitSerializer
     permission_classes = [IsAdminUser]
     
     def get_queryset(self):
@@ -118,9 +118,8 @@ class UserHabitDatesViewSet(ModelViewSet):
 
 
 class UserCompleteDatesViewSet(ModelViewSet):
-    serializer_class = HabitDateSerializer
+    serializer_class = HabitCompleteDateSerializer
     permission_classes=[IsAuthenticated]
-    #
 
     def get_queryset(self):
         user = self.request.user.id

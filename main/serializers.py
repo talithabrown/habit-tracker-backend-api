@@ -20,18 +20,25 @@ class HabitCompleteDateSerializer(serializers.ModelSerializer):
 class HabitDateSerializer(serializers.ModelSerializer):
     class Meta:
         model = HabitCompleteDate
-        fields = ['id', 'complete_date', 'habit']
+        fields = ['id', 'complete_date']
 
     def create(self, validated_data):
         habit_id = self.context['habit_id']
         return HabitCompleteDate.objects.create(habit_id=habit_id, **validated_data)
 
 
-class HabitSerializer(serializers.ModelSerializer):
+class AdminHabitSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(read_only=True)
     class Meta:
         model = Habit
         fields = ['id', 'habit', 'user_id']
+
+
+
+class UserHabitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Habit
+        fields = ['id', 'habit']
         
 
 class PostHabitSerializer(serializers.ModelSerializer):
